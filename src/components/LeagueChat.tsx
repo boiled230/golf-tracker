@@ -30,6 +30,12 @@ export function LeagueChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  useEffect(() => {
     const q = query(
       collection(db, 'messages'),
       orderBy('timestamp', 'asc'),
@@ -95,16 +101,9 @@ export function LeagueChat() {
   };
 
   return (
-    <div className="bg-white rounded-[2rem] border border-neutral-200 shadow-2xl overflow-hidden flex flex-col h-[600px]">
-      {/* Header */}
-      <div className="px-8 py-4 border-b border-neutral-100 bg-emerald-900 text-white flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-emerald-800 rounded-xl flex items-center justify-center">
-            <Users className="w-5 h-5 text-emerald-400" />
-          </div>
-          <h3 className="font-black uppercase italic tracking-tighter text-lg">League Chat</h3>
-        </div>
-        
+    <div className="bg-white rounded-[2rem] border border-neutral-200 shadow-2xl overflow-hidden flex flex-col h-full">
+      {/* Header (Nickname only) */}
+      <div className="px-4 py-2 border-b border-neutral-100 bg-emerald-900 text-white flex items-center justify-end">
         <div className="flex items-center gap-3">
           {isEditingNickname ? (
             <div className="flex items-center gap-2 bg-white/10 rounded-lg px-2 py-1">
@@ -135,33 +134,33 @@ export function LeagueChat() {
       {/* Messages */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-6 space-y-4 bg-neutral-50/50"
+        className="flex-1 overflow-y-auto p-3 space-y-1 bg-neutral-50/50"
       >
         {messages.map((msg) => (
           <div 
             key={msg.id} 
             className={cn(
-              "flex flex-col max-w-[80%]",
-              msg.senderId === auth.currentUser?.uid ? "ml-auto items-end" : "items-start"
+              "flex items-baseline gap-2 max-w-full",
+              msg.senderId === auth.currentUser?.uid ? "flex-row-reverse" : "flex-row"
             )}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{msg.sender}</span>
-            </div>
+            <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400 shrink-0">
+              {msg.sender}:
+            </span>
             <div 
               className={cn(
-                "px-4 py-2 rounded-2xl shadow-sm border",
+                "px-2 py-1 rounded-xl shadow-sm border",
                 msg.senderId === auth.currentUser?.uid 
-                  ? "bg-emerald-600 border-emerald-700 text-white rounded-tr-none" 
-                  : "bg-white border-neutral-200 text-neutral-800 rounded-tl-none"
+                  ? "bg-emerald-600 border-emerald-700 text-white" 
+                  : "bg-white border-neutral-200 text-neutral-800"
               )}
             >
-              {msg.text && <p className="text-sm font-medium leading-relaxed">{msg.text}</p>}
+              {msg.text && <p className="text-xs font-medium leading-tight">{msg.text}</p>}
               {msg.gif && (
                 <img 
                   src={msg.gif} 
                   alt="GIF" 
-                  className="rounded-lg mt-2 max-w-full h-auto" 
+                  className="rounded-lg mt-1 max-w-[150px] h-auto" 
                   referrerPolicy="no-referrer"
                 />
               )}

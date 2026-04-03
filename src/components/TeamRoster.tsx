@@ -45,10 +45,18 @@ export function TeamRoster({ teams, leaderboard }: TeamRosterProps) {
   };
 
   const uniqueTeams = Array.from(new Map(teams.map(t => [t.ownerName.toLowerCase(), t])).values());
+  const sortedTeams = [...uniqueTeams].sort((a, b) => {
+    const earningsA = a.totalEarnings || 0;
+    const earningsB = b.totalEarnings || 0;
+    if (earningsB !== earningsA) {
+      return earningsB - earningsA;
+    }
+    return a.ownerName.localeCompare(b.ownerName);
+  });
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-2 sm:px-0">
-      {uniqueTeams.map((team) => {
+      {sortedTeams.map((team) => {
         const top40Players = team.players.filter(p => 
           leaderboard.slice(0, 40).some(lp => lp.name.toLowerCase().includes(p.toLowerCase()))
         );

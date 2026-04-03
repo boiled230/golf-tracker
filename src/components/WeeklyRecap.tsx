@@ -15,6 +15,7 @@ interface WeeklyRecapProps {
 export function WeeklyRecap({ results, teams }: WeeklyRecapProps) {
   const [generating, setGenerating] = useState(false);
   const [selectedGolfer, setSelectedGolfer] = useState('');
+  const [selectedRoastOwner, setSelectedRoastOwner] = useState('');
   const [selectedTournament, setSelectedTournament] = useState('The Masters');
   const [customTournament, setCustomTournament] = useState('');
   const [isCustomTournament, setIsCustomTournament] = useState(false);
@@ -80,7 +81,8 @@ export function WeeklyRecap({ results, teams }: WeeklyRecapProps) {
         Winner Team: ${winnerTeam.ownerName}
         Winning Golfer: ${selectedGolfer}
         Tournament: ${tournamentToUse}
-        Teams with 0 Top 40 players: ${teamsWithNoTop40.join(', ') || 'None'}
+        Target for Roast (0 Top 40 players): ${selectedRoastOwner || 'None'}
+        Other Teams with 0 Top 40 players: ${teamsWithNoTop40.filter(t => t !== selectedRoastOwner).join(', ') || 'None'}
         All Team Owners: ${allOwnerNames.join(', ')}
         Owner Personality Traits:
         ${ownerTraits}
@@ -91,9 +93,10 @@ export function WeeklyRecap({ results, teams }: WeeklyRecapProps) {
         2. Integrate the Team Owner’s personality traits into the roast or headline.
         3. DO NOT roast teams that lost generally. 
         4. ONLY call out teams if they have NO top 40 golfers this week.
-        5. The headline should prominently feature the winning team name.
-        6. Each option should have a headline, subHeadline, and a 2-3 sentence roast/banter.
-        7. For EACH option, generate a new, unique, funny golf-themed nickname for EVERY team owner (e.g. 'The Sand Trap King', 'Birdie Baron', 'Three-Putt Professional').
+        5. If a 'Target for Roast' is specified, focus the roast specifically on ${selectedRoastOwner} and their failure to get anyone in the top 40.
+        6. The headline should prominently feature the winning team name.
+        7. Each option should have a headline, subHeadline, and a 2-3 sentence roast/banter.
+        8. For EACH option, generate a new, unique, funny golf-themed nickname for EVERY team owner (e.g. 'The Sand Trap King', 'Birdie Baron', 'Three-Putt Professional').
         
         Example: 'Hubbard’s Houston Heist: [Owner Name]’s [Trait] energy leads to a Texas Takeover!'
         
@@ -131,7 +134,7 @@ export function WeeklyRecap({ results, teams }: WeeklyRecapProps) {
         ...opt,
         winnerTeamId: winnerTeam.id,
         winningGolfer: selectedGolfer,
-        weekEnding: new Date().toISOString().split('T')[0],
+        weekEnding: new Date().toISOString(),
         tournamentName: tournamentToUse
       })));
     } catch (err) {
@@ -145,12 +148,20 @@ export function WeeklyRecap({ results, teams }: WeeklyRecapProps) {
     if (selectedIndex === null || !previewOptions[selectedIndex]) return;
     const option = previewOptions[selectedIndex];
     try {
-      // Publish result
+      const { getDocs, query, collection, deleteDoc, doc, updateDoc } = await import('firebase/firestore');
+      
+      // 1. Auto-delete past recaps
+      const resultsRef = collection(db, 'results');
+      const existingResults = await getDocs(resultsRef);
+      for (const resultDoc of existingResults.docs) {
+        await deleteDoc(doc(db, 'results', resultDoc.id));
+      }
+
+      // 2. Publish new result
       await addDoc(collection(db, 'results'), option);
       
-      // Update team nicknames
+      // 3. Update team nicknames
       if (option.nicknames && Array.isArray(option.nicknames)) {
-        const { updateDoc, doc } = await import('firebase/firestore');
         for (const nick of option.nicknames) {
           const team = teams.find(t => t.ownerName.toLowerCase() === nick.ownerName.toLowerCase());
           if (team) {
@@ -164,8 +175,10 @@ export function WeeklyRecap({ results, teams }: WeeklyRecapProps) {
       setPreviewOptions([]);
       setSelectedIndex(null);
       setSelectedGolfer('');
+      alert('Recap published successfully! Past recaps have been cleared.');
     } catch (err) {
       console.error('Publish error:', err);
+      alert('Failed to publish recap. Check console for details.');
     }
   };
 
@@ -219,6 +232,20 @@ export function WeeklyRecap({ results, teams }: WeeklyRecapProps) {
               <option value="">-- Choose a Golfer --</option>
               {allGolfers.map(g => (
                 <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em]">Select Owner to Roast (0 Top 40)</label>
+            <select 
+              value={selectedRoastOwner} 
+              onChange={(e) => setSelectedRoastOwner(e.target.value)}
+              className="w-full bg-neutral-50 border-2 border-neutral-100 rounded-2xl px-5 py-4 text-sm font-bold focus:border-emerald-500 outline-none transition-all"
+            >
+              <option value="">-- No Specific Roast Target --</option>
+              {teams.map(t => (
+                <option key={t.id} value={t.ownerName}>{t.ownerName}</option>
               ))}
             </select>
           </div>

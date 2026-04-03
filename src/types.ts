@@ -3,7 +3,12 @@ export interface Player {
   name: string;
   totalScore: string;
   thru: string;
-  round: string;
+  today: string;
+  r1: string;
+  r2: string;
+  r3: string;
+  r4: string;
+  total: string;
   movement: 'rising' | 'falling' | 'stable';
   teamOwner?: string;
   teamColor?: string;
@@ -27,6 +32,7 @@ export interface WeeklyResult {
   tournamentName: string;
   winnerTeamId: string;
   winnerName?: string;
+  winnerTraits?: string[];
   winningGolfer: string;
   headline: string;
   subHeadline: string;

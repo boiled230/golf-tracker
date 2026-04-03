@@ -80,12 +80,15 @@ export default function App() {
   const fetchLeaderboard = async () => {
     try {
       const res = await fetch('/api/leaderboard');
-      if (!res.ok) throw new Error('Failed to fetch leaderboard');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(`Failed to fetch leaderboard: ${res.status} ${errData.error || ''}`);
+      }
       const data = await res.json();
       setLeaderboard(data);
     } catch (err) {
       console.error('Leaderboard fetch error:', err);
-      setError('Failed to fetch live leaderboard.');
+      setError(`Leaderboard Sync Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -176,12 +179,12 @@ export default function App() {
       <header className="bg-white border-b border-neutral-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-[#228B22] rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-200 rotate-3">
+            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-200 rotate-3">
               <Trophy className="w-6 h-6" />
             </div>
             <h1 className="text-2xl font-black tracking-tighter uppercase italic flex items-center">
-              <span className="text-[#228B22]">Golf</span>
-              <span className="text-[#708090]">Tracker</span>
+              <span className="text-emerald-600">Golf</span>
+              <span className="text-slate-500">Tracker</span>
             </h1>
           </div>
 
@@ -255,7 +258,8 @@ export default function App() {
                 teamStats={teamStats}
                 latestResult={results[0] ? {
                   ...results[0],
-                  winnerName: teams.find(t => t.id === results[0].winnerTeamId)?.ownerName || results[0].winnerTeamId
+                  winnerName: teams.find(t => t.id === results[0].winnerTeamId)?.ownerName || results[0].winnerTeamId,
+                  winnerTraits: teams.find(t => t.id === results[0].winnerTeamId)?.traits || []
                 } : undefined}
                 onRefresh={fetchLeaderboard}
               />
@@ -310,8 +314,8 @@ export default function App() {
           <div className="flex items-center justify-center gap-2 opacity-50 grayscale">
             <Trophy className="w-5 h-5" />
             <span className="font-black italic uppercase tracking-tighter flex items-center">
-              <span className="text-[#228B22]">Golf</span>
-              <span className="text-[#708090]">Tracker</span>
+              <span className="text-emerald-600">Golf</span>
+              <span className="text-slate-500">Tracker</span>
             </span>
           </div>
           <p className="text-neutral-400 text-xs font-medium uppercase tracking-widest">© 2026 GolfTracker • Darrell Ltd.</p>

@@ -1,8 +1,36 @@
 import React, { useState } from 'react';
 import { Player, WeeklyResult } from '../types';
-import { TrendingUp, TrendingDown, Minus, Trophy, Users, RefreshCw, Sparkles, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Trophy, Users, RefreshCw, Sparkles, AlertTriangle, Music, MessageSquare, Clock, Beer, Wine, Zap, Timer, Flame, Smile, Target, DollarSign, Shirt, Cpu, Leaf, Dog, BookOpen, Film, Gamepad2, Dumbbell } from 'lucide-react';
 import { cn, getTeamColor, isTournamentDay } from '../lib/utils';
 import { LeagueChat } from './LeagueChat';
+
+const TraitIcon = ({ traits }: { traits?: string[] }) => {
+  if (!traits || traits.length === 0) return <Sparkles className="w-5 h-5" />;
+  
+  const traitStr = traits.join(' ').toLowerCase();
+  
+  if (traitStr.includes('music')) return <Music className="w-5 h-5" />;
+  if (traitStr.includes('talk')) return <MessageSquare className="w-5 h-5" />;
+  if (traitStr.includes('late')) return <Clock className="w-5 h-5" />;
+  if (traitStr.includes('beer')) return <Beer className="w-5 h-5" />;
+  if (traitStr.includes('wine')) return <Wine className="w-5 h-5" />;
+  if (traitStr.includes('fast')) return <Zap className="w-5 h-5" />;
+  if (traitStr.includes('slow')) return <Timer className="w-5 h-5" />;
+  if (traitStr.includes('angry') || traitStr.includes('mad')) return <Flame className="w-5 h-5" />;
+  if (traitStr.includes('happy') || traitStr.includes('smile')) return <Smile className="w-5 h-5" />;
+  if (traitStr.includes('target') || traitStr.includes('skill')) return <Target className="w-5 h-5" />;
+  if (traitStr.includes('money') || traitStr.includes('cash')) return <DollarSign className="w-5 h-5" />;
+  if (traitStr.includes('style') || traitStr.includes('shirt')) return <Shirt className="w-5 h-5" />;
+  if (traitStr.includes('tech') || traitStr.includes('computer')) return <Cpu className="w-5 h-5" />;
+  if (traitStr.includes('nature') || traitStr.includes('leaf')) return <Leaf className="w-5 h-5" />;
+  if (traitStr.includes('dog') || traitStr.includes('cat') || traitStr.includes('animal')) return <Dog className="w-5 h-5" />;
+  if (traitStr.includes('book') || traitStr.includes('read')) return <BookOpen className="w-5 h-5" />;
+  if (traitStr.includes('movie') || traitStr.includes('film')) return <Film className="w-5 h-5" />;
+  if (traitStr.includes('game')) return <Gamepad2 className="w-5 h-5" />;
+  if (traitStr.includes('sport') || traitStr.includes('gym')) return <Dumbbell className="w-5 h-5" />;
+  
+  return <Sparkles className="w-5 h-5" />;
+};
 
 interface PlayerWithPhoto extends Player {
   photoUrl?: string;
@@ -18,7 +46,15 @@ interface LeaderboardProps {
 }
 
 export function Leaderboard({ tournamentName, lastUpdated, players, teamStats, latestResult, onRefresh }: LeaderboardProps) {
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleRefresh = async () => {
     if (onRefresh) {
@@ -31,21 +67,19 @@ export function Leaderboard({ tournamentName, lastUpdated, players, teamStats, l
   return (
     <div className="space-y-8">
       {latestResult && (
-        <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 p-8 rounded-[2rem] shadow-2xl border-4 border-white/20 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 p-4 sm:p-8 rounded-[2rem] shadow-2xl border-4 border-white/20 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-48 h-48 bg-emerald-400/20 rounded-full blur-2xl" />
           
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-            <div className="w-24 h-24 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-md border border-white/30 shadow-xl rotate-3 shrink-0">
-              <Trophy className="w-14 h-14 text-yellow-300 drop-shadow-lg" />
-            </div>
             <div className="space-y-2 flex-1">
               <div className="flex flex-col md:flex-row md:items-baseline gap-3">
-                <h4 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none drop-shadow-md">
+                <h4 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter leading-none drop-shadow-md">
                   {latestResult.headline}
                 </h4>
-                <span className="bg-yellow-400 text-emerald-900 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest">
+                <span className="bg-yellow-400 text-emerald-900 px-6 py-2 rounded-full text-lg font-black uppercase tracking-widest flex items-center gap-2 shadow-lg">
                   Winner - {latestResult.winnerName || 'TBD'}
+                  <Trophy className="w-5 h-5" />
                 </span>
               </div>
               <p className="text-xl font-bold text-emerald-50 italic opacity-90">
@@ -64,7 +98,7 @@ export function Leaderboard({ tournamentName, lastUpdated, players, teamStats, l
         {/* Main Leaderboard */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-3xl border border-neutral-200 shadow-xl overflow-hidden">
-            <div className="px-8 py-6 border-b border-neutral-100 bg-white flex items-center justify-between">
+            <div className="px-4 sm:px-8 py-6 border-b border-neutral-100 bg-white flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-black text-emerald-900 uppercase italic tracking-tighter">{tournamentName}</h2>
                 <p className="text-xs text-neutral-400 font-bold uppercase tracking-widest mt-1">Last updated: {new Date(lastUpdated).toLocaleTimeString()}</p>
@@ -88,25 +122,35 @@ export function Leaderboard({ tournamentName, lastUpdated, players, teamStats, l
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-auto text-left border-collapse">
+              <table className="w-full text-left border-collapse table-auto">
                 <tbody className="divide-y divide-neutral-50">
                   {players.slice(0, 40).map((player, idx) => {
-                    // Create a Strict 4-Slot Array for each row
+                    // Create a Strict 5-Slot Array for each row
+                    const rawName = player.teamOwner || 'Free Agent';
+                    const prefix = `${idx + 1}. `;
+                    const limit = 9; // Character limit for mobile
+                    
+                    const displayName = isMobile && rawName.length > limit 
+                      ? `${prefix}${rawName.substring(0, limit - 1)}-`
+                      : `${prefix}${rawName}`;
+
                     const teamBadge = player.teamOwner ? (
                       <span 
-                        className="font-black uppercase italic tracking-tighter text-[14px] sm:text-[18px] block truncate"
+                        className="font-black uppercase italic tracking-tighter text-[9px] sm:text-[12px] block truncate"
                         style={{ color: getTeamColor(player.teamOwner) }}
                       >
-                        {player.teamOwner}
+                        {displayName}
                       </span>
                     ) : (
-                      <span className="text-[8px] sm:text-[9px] font-black text-neutral-300 uppercase tracking-widest block">Free Agent</span>
+                      <span className="text-[6px] sm:text-[7px] font-black text-neutral-300 uppercase tracking-widest block">{displayName}</span>
                     );
 
-                    const rowDisplay = [
+                    const rowData = [
                       teamBadge,
-                      player.totalScore,
-                      player.thru || '-'
+                      player.thru || '-',
+                      player.today || '-',
+                      player.r1 || '-',
+                      player.r2 || '-'
                     ];
 
                     return (
@@ -114,37 +158,36 @@ export function Leaderboard({ tournamentName, lastUpdated, players, teamStats, l
                         "hover:bg-neutral-50/50 transition-all group",
                         player.teamOwner ? "bg-emerald-50/10" : ""
                       )} style={player.teamOwner ? { borderLeft: `4px solid ${getTeamColor(player.teamOwner)}` } : {}}>
-                        {/* Slot 1: Number + Team Badge (Auto) */}
-                        <td className="w-auto pl-2 pr-4 py-1 leading-tight">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-neutral-400 min-w-[1.5rem]">
-                              {idx + 1}.
-                            </span>
-                            {rowDisplay[0]}
-                          </div>
+                        {/* 1: PLAYER (Team Badge with prefix) */}
+                        <td className="px-2 sm:px-4 py-0.5 border-r border-neutral-100 max-w-[75px] sm:max-w-none overflow-hidden">
+                          {rowData[0]}
                         </td>
 
-                        {/* Slot 2: Score (Auto) */}
-                        <td className="w-auto px-4 py-1 text-center leading-tight">
-                          <div className="flex items-center gap-3 justify-center">
-                            <span className={cn(
-                              "inline-block px-1.5 sm:px-2 py-0.5 rounded-md font-black text-[11px] sm:text-sm tracking-tighter",
-                              String(player.totalScore).startsWith('-') ? "bg-red-50 text-red-600" : 
-                              player.totalScore === 'E' ? "bg-neutral-100 text-neutral-600" : "bg-neutral-50 text-neutral-900"
-                            )}>
-                              {rowDisplay[1]}
-                            </span>
-                            <div className="flex items-center gap-1">
-                              {player.movement === 'rising' && <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-emerald-500 shrink-0" />}
-                              {player.movement === 'falling' && <TrendingDown className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-red-500 shrink-0" />}
-                            </div>
-                          </div>
+                        {/* 2: THRU */}
+                        <td className="px-1 sm:px-4 py-0.5 text-center border-r border-neutral-100 whitespace-nowrap">
+                          <span className="text-[10px] font-black text-neutral-400 uppercase">
+                            {rowData[1]}
+                          </span>
                         </td>
 
-                        {/* Slot 3: Thru (Auto) - Visible on mobile */}
-                        <td className="w-auto px-4 py-1 text-right leading-tight">
-                          <span className="text-[10px] sm:text-xs font-black text-neutral-400 uppercase tracking-tighter">
-                            {rowDisplay[2]}
+                        {/* 3: TODAY */}
+                        <td className="px-1 sm:px-4 py-0.5 text-center border-r border-neutral-100 whitespace-nowrap">
+                          <span className="text-[10px] font-black text-neutral-500">
+                            {rowData[2]}
+                          </span>
+                        </td>
+
+                        {/* 4: R1 */}
+                        <td className="px-1 sm:px-4 py-0.5 text-center border-r border-neutral-100 whitespace-nowrap">
+                          <span className="text-[10px] font-bold text-neutral-400">
+                            {rowData[3]}
+                          </span>
+                        </td>
+
+                        {/* 5: R2 */}
+                        <td className="px-1 sm:px-4 py-0.5 text-center whitespace-nowrap">
+                          <span className="text-[10px] font-bold text-neutral-400">
+                            {rowData[4]}
                           </span>
                         </td>
                       </tr>
@@ -158,15 +201,15 @@ export function Leaderboard({ tournamentName, lastUpdated, players, teamStats, l
 
         {/* Sidebar Stats */}
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-neutral-200 shadow-xl p-8">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-                <Users className="w-6 h-6" />
+          <div className="bg-white rounded-3xl border border-neutral-200 shadow-xl p-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                <Users className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-black text-emerald-900 uppercase italic tracking-tighter">Top 40 Golfers</h3>
+              <h3 className="text-lg font-black text-emerald-900 uppercase italic tracking-tighter">Top 40 Golfers</h3>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1">
               {Object.entries(teamStats)
                 .sort(([, a], [, b]) => b - a)
                 .map(([owner, count]) => {
@@ -175,16 +218,16 @@ export function Leaderboard({ tournamentName, lastUpdated, players, teamStats, l
                     <div 
                       key={owner} 
                       className={cn(
-                        "flex items-center justify-between p-2 rounded-2xl border transition-all group",
+                        "flex items-center justify-between py-1 px-2 rounded-xl border transition-all group",
                         isDisaster 
                           ? "bg-red-600 border-red-700 shadow-lg shadow-red-200" 
                           : "bg-neutral-50/50 border-neutral-100 hover:border-emerald-200"
                       )}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3">
                         <div 
                           className={cn(
-                            "w-8 h-8 rounded-xl flex items-center justify-center text-white text-sm font-black shadow-lg group-hover:scale-110 transition-transform",
+                            "w-6 h-6 rounded-lg flex items-center justify-center text-white text-[10px] font-black shadow-lg group-hover:scale-110 transition-transform",
                             isDisaster ? "bg-white !text-red-600" : "shadow-emerald-100"
                           )}
                           style={!isDisaster ? { backgroundColor: getTeamColor(owner) } : {}}
@@ -193,7 +236,7 @@ export function Leaderboard({ tournamentName, lastUpdated, players, teamStats, l
                         </div>
                         <span 
                           className={cn(
-                            "font-black uppercase tracking-tight text-2xl",
+                            "font-black uppercase tracking-tight text-lg",
                             isDisaster ? "text-white" : ""
                           )} 
                           style={!isDisaster ? { color: getTeamColor(owner) } : {}}
@@ -203,7 +246,7 @@ export function Leaderboard({ tournamentName, lastUpdated, players, teamStats, l
                       </div>
                       <div className="flex flex-col items-end">
                         <span className={cn(
-                          "text-2xl font-black tracking-tighter",
+                          "text-xl font-black tracking-tighter",
                           isDisaster ? "text-white" : (count > 0 ? "text-emerald-600" : "text-red-500")
                         )}>
                           {count}
@@ -215,31 +258,24 @@ export function Leaderboard({ tournamentName, lastUpdated, players, teamStats, l
             </div>
 
             {Object.values(teamStats).some(c => c === 0) && (
-              <div className="mt-8 p-5 bg-red-50 border-2 border-red-100 rounded-2xl flex items-center gap-4 animate-pulse">
-                <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 shrink-0">
-                  <AlertTriangle className="w-7 h-7" />
+              <div className="mt-4 p-3 bg-red-50 border-2 border-red-100 rounded-2xl flex items-center gap-3 animate-pulse">
+                <div className="w-10 h-10 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 shrink-0">
+                  <AlertTriangle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-red-700 uppercase tracking-widest">Disaster Watch</h4>
-                  <p className="text-xs text-red-600 font-bold">Teams with 0 players in Top 40 detected.</p>
+                  <h4 className="text-[10px] font-black text-red-700 uppercase tracking-widest">Disaster Watch</h4>
+                  <p className="text-[10px] text-red-600 font-bold">0 players in Top 40 detected.</p>
                 </div>
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* League Chat Section */}
-      <div className="mt-12">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-neutral-200" />
-          <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-2xl border border-neutral-200 shadow-sm">
-            <Users className="w-5 h-5 text-emerald-600" />
+          {/* League Chat moved to Sidebar */}
+          <div className="bg-white rounded-3xl border border-neutral-200 shadow-xl overflow-hidden flex flex-col h-[700px]">
+            <div className="flex-1 overflow-hidden">
+              <LeagueChat />
+            </div>
           </div>
-          <div className="h-px flex-1 bg-neutral-200" />
-        </div>
-        <div className="max-w-4xl mx-auto">
-          <LeagueChat />
         </div>
       </div>
     </div>
