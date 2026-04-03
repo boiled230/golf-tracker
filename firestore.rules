@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.email == "boiledfrogsoup@gmail.com" && 
+             request.auth.token.email_verified == true;
+    }
+
+    function isValidTeam(data) {
+      return data.ownerName is string && data.ownerName.size() > 0 && data.ownerName.size() < 100 &&
+             data.players is list && data.players.size() > 0 && data.players.size() < 20 &&
+             (!('traits' in data) || (data.traits is list && data.traits.size() < 20)) &&
+             (!('color' in data) || (data.color is string && data.color.size() < 10)) &&
+             (!('totalEarnings' in data) || data.totalEarnings is number);
+    }
+
+    function isValidMessage(data) {
+      return data.text is string && 
+             data.sender is string && 
+             data.senderId is string &&
+             (data.timestamp == request.time || data.timestamp is timestamp) &&
+             (!('gif' in data) || data.gif == null || data.gif is string) &&
+             (!('color' in data) || data.color is string);
+    }
+
+    match /teams/{teamId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidTeam(request.resource.data);
+      allow update: if isAdmin() && isValidTeam(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /leaderboards/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /results/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /messages/{messageId} {
+      allow read: if true;
+      allow create: if isValidMessage(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+    
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+  }
+}

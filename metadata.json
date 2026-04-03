@@ -1,0 +1,5 @@
+{
+  "name": "GolfTracker",
+  "description": "Modern fantasy golf league tracker with live leaderboard syncing, AI-generated humor, and team mapping.",
+  "requestFramePermissions": []
+}
